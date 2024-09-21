@@ -5,8 +5,13 @@
   -->
 
 <resources>
-    <string name="app_name">ToDo-V2</string>
+    <string name="app_name">ToDo</string>
     <string name="save">Save</string>
     <string name="new_task">New Task</string>
-    <string name="tasks">Tasks</string>
+    <string name="tasks">To-Do</string>
+    <string-array name="priority_options">
+        <item>Low</item>
+        <item>Medium</item>
+        <item>High</item>
+    </string-array>
 </resources>

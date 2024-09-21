@@ -1,0 +1,10 @@
+<!-- task_card_outline.xml -->
+
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" /> <!-- Background color of the card -->
+    <stroke
+        android:width="0.5dp"
+        android:color="#808080" /> <!-- Black stroke for the outline -->
+    <corners android:radius="8dp" /> <!-- Radius of the card corners -->
+</shape>

@@ -6,7 +6,8 @@
   -->
 
 <resources>
-    <color name="colorPrimary">#9C27B0</color>
-    <color name="colorPrimaryPurple">#673AB7</color>
-    <color name="colorAccent">#673AB7</color>
+    <color name="colorPrimary">#1D90F9</color>
+    <color name="colorPrimaryPurple">#1D90F9</color>
+    <color name="colorAccent">#1D90F9</color>
+
 </resources>

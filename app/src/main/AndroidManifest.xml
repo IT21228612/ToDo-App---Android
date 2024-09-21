@@ -23,8 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.example.ToDo.MainActivity" />
-        <activity android:name=".AddNewTask" />
-
+        <activity android:name=".Utils.EditTaskActivity" />
     </application>
 
 </manifest>

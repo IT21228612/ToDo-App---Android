@@ -1,107 +1,137 @@
 package com.example.ToDo;
 
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.widget.Spinner;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.ToDo.Model.Task;
-import com.example.ToDo.Utils.TaskAdapter;
-import com.example.ToDo.Utils.TaskDao;
-import com.example.ToDo.Utils.TaskDatabase;
-import com.example.ToDo.Utils.TaskRepository;
-import com.example.ToDo.Utils.TaskViewModel;
-import com.example.ToDo.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import com.example.ToDo.Adapters.ToDoAdapter;
+import com.example.ToDo.Model.ToDoModel;
+import com.example.ToDo.Utils.DatabaseHandler;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements TaskAdapter.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements DialogCloseListener{
 
-    private TaskViewModel taskViewModel;
-    private TaskAdapter taskAdapter;
+    private DatabaseHandler db;
 
-    // In your MainActivity
+    private RecyclerView tasksRecyclerView;
+    private ToDoAdapter tasksAdapter;
+    private FloatingActionButton fab , deleteChecked;
+    private Spinner sort;
 
+    private List<ToDoModel> taskList;
+
+    private static final int EDIT_TASK_REQUEST_CODE = 1; // Define a request code
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        // Initialize taskAdapter before setting the click listener
-        taskAdapter = new TaskAdapter(this);
-
-        taskAdapter.setOnItemClickListener(this);
-
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().hide();
+        Objects.requireNonNull(getSupportActionBar()).hide();
 
-        RecyclerView tasksRecyclerView = findViewById(R.id.tasksRecyclerView);
+        db = new DatabaseHandler(this);
+        db.openDatabase();
+
+        tasksRecyclerView = findViewById(R.id.tasksRecyclerView);
         tasksRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        taskAdapter = new TaskAdapter(this);
-        tasksRecyclerView.setAdapter(taskAdapter);
+        tasksAdapter = new ToDoAdapter(db, MainActivity.this);
+        tasksRecyclerView.setAdapter(tasksAdapter);
 
+        // Pass both Context and ToDoAdapter to RecyclerItemTouchHelper constructor
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new RecyclerItemTouchHelper(this, tasksAdapter));
+        itemTouchHelper.attachToRecyclerView(tasksRecyclerView);
 
-        // Create an instance of TaskDao
-        TaskDao taskDao = TaskDatabase.getInstance(this).taskDao();
+        fab = findViewById(R.id.fab);
+        deleteChecked = findViewById(R.id.deleteChecked);
+        taskList = db.getAllTasks();
+        Collections.reverse(taskList);
 
+        tasksAdapter.setTasks(taskList);
 
-        // Create an instance of TaskRepository with TaskDao
-        TaskRepository taskRepository = new TaskRepository(taskDao);
-
-        // Pass the taskRepository to the TaskViewModel constructor
-        taskViewModel = new ViewModelProvider(this, new ViewModelProvider.AndroidViewModelFactory(getApplication())).get(TaskViewModel.class);
-        taskViewModel.init(taskRepository);
-
-
-
-        // Observe changes in task list
-        taskViewModel.getAllTasks().observe(this, new Observer<List<Task>>() {
-            @Override
-            public void onChanged(List<Task> tasks) {
-                taskAdapter.setTasks(tasks);
-            }
-        });
-
-        Log.d("jeewa", "jeewantha");
-
-
-
-
-
-        // Find FloatingActionButton and set OnClickListener
-        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start AddNewTask activity using Intent
-                Intent intent = new Intent(MainActivity.this, AddNewTask.class);
-                startActivity(intent);
+                AddNewTask.newInstance().show(getSupportFragmentManager(), AddNewTask.TAG);
             }
         });
 
-        RecyclerItemTouchHelper itemTouchHelper = new RecyclerItemTouchHelper(taskAdapter, taskViewModel, this);
-        new ItemTouchHelper(itemTouchHelper).attachToRecyclerView(tasksRecyclerView);
+
+        deleteChecked.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteCheckedTasks();
+            }
+        });
+
     }
 
     @Override
-    public void onItemClick(int position) {
-        // Get the task at the clicked position
-        Task clickedTask = taskAdapter.getTaskAtPosition(position);
+    public void handleDialogClose(DialogInterface dialog){
+        taskList = db.getAllTasks();
+        Collections.reverse(taskList);
+        tasksAdapter.setTasks(taskList);
 
-        // Start the edit activity and pass the task details
-        Intent intent = new Intent(MainActivity.this, EditTaskActivity.class);
-        intent.putExtra("task", clickedTask);
-        startActivity(intent);
     }
 
+    private void deleteCheckedTasks() {
+        // Get all tasks from the adapter
+        List<ToDoModel> allTasks = tasksAdapter.getTasks();
+
+        // Check if there are any checked tasks
+        boolean hasCheckedTasks = false;
+        for (ToDoModel task : allTasks) {
+            if (task.isStatus()) {
+                hasCheckedTasks = true;
+                break;
+            }
+        }
+
+        // Show confirmation dialog only if there are checked tasks
+        if (hasCheckedTasks) {
+            // Create and show the confirmation dialog
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Checked Tasks")
+                    .setMessage("Are you sure you want to delete all checked tasks?")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Delete checked tasks if user confirms
+                            performDeleteCheckedTasks();
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        } else {
+            // Show a message if there are no checked tasks
+            Toast.makeText(MainActivity.this, "No checked tasks to delete", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void performDeleteCheckedTasks() {
+        // Get all tasks from the adapter
+        List<ToDoModel> allTasks = tasksAdapter.getTasks();
+
+        // Iterate through all tasks and delete checked tasks from the database
+        for (ToDoModel task : allTasks) {
+            if (task.isStatus()) {
+                db.deleteTask(task.getId());
+            }
+        }
+
+        // Refresh the task list in the adapter after deletion
+        taskList = db.getAllTasks();
+        tasksAdapter.setTasks(taskList);
+    }
 }

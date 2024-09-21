@@ -7,49 +7,61 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:layout_marginLeft="15dp"
+    android:layout_marginTop="20dp"
+    android:layout_marginRight="15dp"
+    android:layout_marginBottom="10dp"
+    android:padding="16dp"
+    android:background="@drawable/task_card_outline">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_width="382dp"
+        android:layout_height="299dp"
         android:orientation="vertical">
 
         <EditText
             android:id="@+id/name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
+            android:layout_height="54dp"
+
+            android:hint="name"
             android:inputType="text"
-            android:text="Nameeee" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
         <EditText
             android:id="@+id/description"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="63dp"
             android:ems="10"
+            android:hint="description"
             android:inputType="text"
-            android:text="description" />
-
-        <EditText
-            android:id="@+id/priority"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="text"
-            android:text="priorrity" />
+             />
 
         <EditText
             android:id="@+id/deadline"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="date" />
+            android:layout_height="68dp"
+            android:hint="deadline"
+            android:focusableInTouchMode="false">
+
+        </EditText>
+
+        <Spinner
+            android:id="@+id/priority"
+            android:hint="Priority"
+            android:layout_width="match_parent"
+            android:layout_height="62dp" />
 
         <Button
             android:id="@+id/saveButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save" />
+            android:background="@drawable/rounded_button_background"
+            android:text="@string/save"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
     </LinearLayout>
+
 </RelativeLayout>
